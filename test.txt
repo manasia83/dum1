@@ -1,1 +1,132 @@
 
+1. Airflow-Based User Data Ingestion Pipeline
+Objective
+
+Enable business users and DSE teams to onboard user-generated datasets into enterprise analytics environments securely, scalably, and production-readily.
+
+Workflow
+Step 1: User File Drop
+Business users upload files into a designated User Access Folder
+Supported formats may include CSV, Parquet, or structured source files
+Step 2: Landing Zone (S3 / Secure Storage)
+Files land in a governed storage layer
+Initial validation and access controls are applied
+Acts as ingestion trigger source for Airflow
+Step 3: Airflow File Ingestion DAG
+
+Core automated functions:
+
+Detect newly dropped files
+Validate schema and format
+Create or update Iceberg tables in Prod DSE
+Load user data into queryable environments
+Move original source files into archive storage
+Step 4: Archive Layer
+Raw uploaded files stored temporarily
+Standard lifecycle retention: ~7 days
+Provides rollback / troubleshooting safety
+Step 5: Prod DSE Iceberg Layer
+90-day active retention
+Queryable through Dremio
+Optimized for:
+Analytics
+AI/ML workloads
+Reporting
+Shared business access
+Step 6: Retention-Saver DAG
+Daily scheduled Airflow job
+Copies important datasets into permanent storage
+Preserves historical data beyond active retention windows
+Step 7: Permanent Staging Layer
+Long-term Iceberg storage
+No expiry
+Used for:
+Historical reporting
+Longitudinal analytics
+Production-grade DSE pipelines
+Step 8: Reporting / Production Use Cases
+
+Supports:
+
+ADA reporting
+DSE production use cases
+Power BI dashboards
+AI models
+Streamlit / Voila apps
+Service account–based automation
+2. Python Dremio Toolbox (High-Level User Features)
+Purpose
+
+Provide enterprise-grade Python utilities for scalable, reusable, and memory-efficient access to Dremio datasets.
+
+Core Features
+A. Flexible Query Engine
+
+Capabilities:
+
+Free-form SQL execution
+Direct Dremio querying
+Fast analytical data pulls
+Denormalized dataset retrieval for AI/ML workflows
+Business Benefits:
+Faster analytics
+User flexibility
+Reduced dependency on DB teams
+B. Shared Saved Query Repository
+
+Capabilities:
+
+Save frequently used enterprise queries
+Parameterized execution
+Team-wide reusable templates
+Governance-friendly standardization
+Example:
+
+Instead of rewriting:
+
+SELECT * FROM portfolio WHERE date = '2026-04-01'
+
+Users can run:
+
+run_saved_query("portfolio_snapshot", date="2026-04-01")
+Benefits:
+Reusability
+Standardization
+Faster onboarding
+Reduced SQL duplication
+C. Large Dataset Chunk Loader
+
+Capabilities:
+
+Pull very large datasets safely
+Chunked / paginated retrieval
+Prevent local machine memory overload
+Reduce Dremio cluster pressure
+Benefits:
+Production-safe extraction
+Handles enterprise-scale data volumes
+Improves performance stability
+D. File Upload Utilities
+
+Capabilities:
+
+Upload Parquet / CSV to S3
+Supports user onboarding
+Enables write-back of interim datasets
+Supports future productionization
+Benefits:
+Simplifies data ingestion
+Standardized upload patterns
+Bridges user experimentation to enterprise production
+
+
+When to Use Postgres vs Dremio
+This decision is critical to maintain system performance and cost.
+
+Criterion	PostgreSQL	Dremio (with Iceberg)
+Workload	OLTP, high‑frequency small writes, point queries	OLAP, large scans, aggregations
+Data volume	Up to a few TB (with careful partitioning)	Petabyte‑scale
+Concurrent queries	Thousands of short queries	Tens to hundreds of analytical queries
+Write pattern	Transactions, UPSERTs, real‑time	Batch append, merge (Airflow)
+AI integration	Row‑by‑row extraction, slow training pulls	Columnar Arrow Flight, instant pandas/Polars
+Interim data	Small (<10M rows) requiring immediate transaction consistency	Large feature sets needing join with lake data
