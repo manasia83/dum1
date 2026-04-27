@@ -1,0 +1,54 @@
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontSize": "14px",
+    "lineColor": "#73726c",
+    "edgeLabelBackground": "#ffffff",
+    "clusterBkg": "#f5f4f0",
+    "clusterBorder": "#b4b2a9"
+  }
+}}%%
+
+flowchart TB
+
+  subgraph ingest["Ingest"]
+    direction LR
+    U(["User\ndrops file"]):::amber
+    L[("Landing zone\nS3 bucket")]:::teal
+    D["File ingestion DAG\ndetect → create → move"]:::blue
+    A["Archive\n7-day lifecycle"]:::gray
+
+    U --> L --> D --> A
+  end
+
+  subgraph retain["Retain & approve"]
+    direction LR
+    P[("Prod DSE\n90-day retention")]:::coral
+    R["Retention DAG\ndaily copy"]:::blue
+    S[("Permanent staging\nIceberg, no expiry")]:::teal
+    G{"sign-off"}:::green
+    Rep["Reporting"]:::coral
+
+    P --> R --> S --> G --> Rep
+  end
+
+  D --> P
+
+  %% ── Color classes ─────────────────────────────────────────────
+  %% amber  = user / human actor
+  classDef amber fill:#FAEEDA,stroke:#854F0B,color:#412402,stroke-width:1px
+
+  %% teal   = storage (S3, Iceberg)
+  classDef teal  fill:#E1F5EE,stroke:#0F6E56,color:#04342C,stroke-width:1px
+
+  %% blue   = Airflow DAGs / orchestration
+  classDef blue  fill:#E6F1FB,stroke:#185FA5,color:#042C53,stroke-width:1px
+
+  %% coral  = Dremio / query / reporting layer
+  classDef coral fill:#FAECE7,stroke:#993C1D,color:#4A1B0C,stroke-width:1px
+
+  %% gray   = temporary / expiring store (dashed border)
+  classDef gray  fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A,stroke-width:1px,stroke-dasharray:6 4
+
+  %% green  = approval / sign-off gate
+  classDef green fill:#EAF3DE,stroke:#3B6D11,color:#173404,stroke-width:1px
